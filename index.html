@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Cosmic Echoes - Interactive Media Art</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <!-- MediaPipe Hands for Real-time Gesture Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <!-- Canvas Container for WebGL & 2D Bezier Glow -->
+    <div id="canvas-container">
+      <canvas id="glow-canvas"></canvas>
+      <canvas id="webgl-canvas"></canvas>
+    </div>
+
+    <!-- Interactive Media Art UI Overlay -->
+    <div id="ui-overlay">
+      <!-- Top Header -->
+      <header class="top-bar flex justify-between items-center w-full">
+        <div class="header-brand glass-pill">
+          <span class="title-main">COSMIC ECHOES</span>
+          <span class="badge-live">
+            <span class="pulse-dot"></span>
+            사계절 빛의 나무 (🌸봄 · 🌿여름 · 🍁가을 · ❄️겨울)
+          </span>
+        </div>
+
+        <div class="top-right-actions">
+          <button id="btn-audio" class="btn-control" title="음향 토글">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <span class="btn-text">사운드 Off</span>
+          </button>
+
+          <button id="btn-webcam" class="btn-control" title="카메라 동작 감지">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span class="btn-text">모션 카메라</span>
+          </button>
+
+          <button id="btn-fullscreen" class="btn-control" title="전체 화면">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+
+          <button id="btn-toggle-hud" class="btn-control" title="UI 숨기기">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Dynamic Guide Prompt -->
+      <div id="guide-prompt" class="guide-prompt glass-pill">
+        ✦ 360도 회전(드래그) | ✋ 손바닥 (인터랙션 이동) | ✊ 주먹 (클릭 파동) ✦
+      </div>
+
+      <!-- Webcam Live Preview PIP -->
+      <div id="webcam-pip" class="glass-panel webcam-pip hidden">
+        <div class="pip-header flex items-center justify-between text-xs text-slate-300 mb-1.5 px-1">
+          <div class="flex items-center gap-1.5">
+            <span class="pulse-dot red"></span>
+            <span class="pip-title font-semibold text-emerald-400">카메라 모션 감지</span>
+          </div>
+          <span id="pip-status" class="text-[10px] text-slate-400">대기 중</span>
+        </div>
+        <div class="pip-video-wrapper relative rounded-lg overflow-hidden border border-white/10">
+          <video id="pip-video" class="w-36 h-28 object-cover transform -scale-x-100 block" autoplay muted playsinline></video>
+          <div id="pip-dot" class="pip-dot absolute w-3.5 h-3.5 bg-emerald-400/90 rounded-full border-2 border-white shadow-[0_0_12px_#34d399] -translate-x-1/2 -translate-y-1/2 transition-all duration-75 opacity-0 pointer-events-none"></div>
+        </div>
+        <!-- Gesture Status Indicator Badge -->
+        <div id="gesture-badge" class="mt-2 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-slate-900/90 border border-white/10 text-xs text-slate-200">
+          <span id="gesture-icon" class="text-sm">✋</span>
+          <span id="gesture-text" class="font-medium text-[11px] text-emerald-300">손바닥 (인터랙션 유지)</span>
+        </div>
+      </div>
+
+      <!-- Bottom Exhibition Controls HUD -->
+      <footer class="bottom-bar glass-panel p-4 flex flex-col md:flex-row gap-4 justify-between items-center w-full max-w-5xl mx-auto">
+        <!-- Preset Themes -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1">테마</span>
+          <button data-mode="stream" class="btn-control active">🌌 은하수 흐름</button>
+          <button data-mode="starlight" class="btn-control">✦ 별빛 표류</button>
+          <button data-mode="quantum" class="btn-control">⚡ 양자 파동</button>
+          <button data-mode="vortex" class="btn-control">🌀 중력 소용돌이</button>
+        </div>
+
+        <!-- Interaction Reaction Type -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold mr-1">반응 방식</span>
+          <button data-force="repulsor" class="btn-control active">밀어내기</button>
+          <button data-force="attractor" class="btn-control">끌어당기기</button>
+          <button data-force="vortex" class="btn-control">회전 반응</button>
+        </div>
+
+        <!-- Sliders -->
+        <div class="flex items-center gap-4 w-full md:w-auto">
+          <div class="flex flex-col gap-1 w-28">
+            <label for="glow-slider" class="text-xs text-slate-300 flex justify-between">
+              <span>광채 강도</span>
+            </label>
+            <input id="glow-slider" type="range" min="0.2" max="2.0" step="0.05" value="0.65" />
+          </div>
+
+          <div class="flex flex-col gap-1 w-28">
+            <label for="sensitivity-slider" class="text-xs text-slate-300 flex justify-between">
+              <span>반응 민감도</span>
+            </label>
+            <input id="sensitivity-slider" type="range" min="0.3" max="2.5" step="0.1" value="1.0" />
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

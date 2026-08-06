@@ -1,0 +1,8 @@
+{
+  "name": "Cosmic Echoes - Interactive Media Art",
+  "description": "An interactive Three.js media art experience with dark navy gradients, glowing particles, starry field, noise textures, and real-time visitor movement reaction.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
