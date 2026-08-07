@@ -200,12 +200,45 @@ class CosmicMediaArtApp {
       });
     }
 
-    // Hide HUD Toggle
+    // Hide HUD Toggle & Reveal on Hover in Top-Right Corner
     const toggleHudBtn = document.getElementById('btn-toggle-hud');
     const overlay = document.getElementById('ui-overlay');
     if (toggleHudBtn && overlay) {
-      toggleHudBtn.addEventListener('click', () => {
+      const updateToggleBtnState = () => {
+        const isHidden = overlay.classList.contains('hidden-hud');
+        toggleHudBtn.title = isHidden ? 'UI 보이기' : 'UI 숨기기';
+      };
+
+      toggleHudBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         overlay.classList.toggle('hidden-hud');
+        if (!overlay.classList.contains('hidden-hud')) {
+          toggleHudBtn.classList.remove('reveal-on-hover');
+        }
+        updateToggleBtnState();
+      });
+
+      const handleTopRightHover = (clientX, clientY) => {
+        if (overlay.classList.contains('hidden-hud')) {
+          const isTopRightCorner = (clientX >= window.innerWidth - 220) && (clientY <= 110);
+          if (isTopRightCorner) {
+            toggleHudBtn.classList.add('reveal-on-hover');
+          } else {
+            toggleHudBtn.classList.remove('reveal-on-hover');
+          }
+        } else {
+          toggleHudBtn.classList.remove('reveal-on-hover');
+        }
+      };
+
+      window.addEventListener('mousemove', (e) => {
+        handleTopRightHover(e.clientX, e.clientY);
+      });
+
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) {
+          handleTopRightHover(e.touches[0].clientX, e.touches[0].clientY);
+        }
       });
     }
   }

@@ -71,6 +71,30 @@
   pointer-events: none !important;
 }
 
+#btn-toggle-hud.reveal-on-hover {
+  position: fixed !important;
+  top: 1.5rem !important;
+  right: 1.5rem !important;
+  z-index: 9999 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: scale(1.1);
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(129, 140, 248, 0.9) !important;
+  color: #a5b4fc !important;
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.7), 0 0 40px rgba(99, 102, 241, 0.4);
+  animation: pulse-hud-btn 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-hud-btn {
+  from {
+    box-shadow: 0 0 12px rgba(129, 140, 248, 0.5);
+  }
+  to {
+    box-shadow: 0 0 24px rgba(129, 140, 248, 0.9), 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+}
+
 #ui-overlay * {
   pointer-events: auto;
 }
